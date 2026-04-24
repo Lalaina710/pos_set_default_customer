@@ -43,14 +43,27 @@ docker exec odoo-dev /opt/odoo/odoo-bin -c /etc/odoo/odoo.conf \
 | 18.0.0.1.2 | 2026-04-24 | Retrait `console.log` debug dans `pos_order.js` | Claude (opus-4.7) |
 | 18.0.0.1.2 | 2026-04-24 | `application: True` → `False` (pas une app) | Claude (opus-4.7) |
 | 18.0.0.1.3 | 2026-04-24 | Ajout `views/res_config_views.xml` manquant dans manifest `data` | Claude (opus-4.7) |
+| 18.0.0.1.4 | 2026-04-24 | Durcissement ACL : domain customer_rank+active+multi-co, groups `group_pos_manager` | Claude (opus-4.7) |
+
+## Sécurité
+
+Depuis la **v18.0.0.1.4** :
+
+- **Domain restrictif** sur `default_partner_id` :
+  - `customer_rank > 0` (exclut fournisseurs purs)
+  - `active = True` (exclut partenaires archivés)
+  - Multi-compagnie compatible (`company_id` = courante ou vide)
+- **Groups ACL** : champ visible/modifiable uniquement par le groupe `point_of_sale.group_pos_manager`
+- Pas de nouveau modèle → pas de `ir.model.access.csv` nécessaire
+- Pas de `sudo()` ni bypass ACL
+
+Voir `models/pos_config.py` pour l'implémentation.
 
 ## Améliorations prévues (TODO)
 
 - [ ] Traduction française des labels (`pos.config` + `res.config.settings`)
-- [ ] Ajout helper `[('customer_rank','>',0)]` sur le domain du champ
 - [ ] Tests unitaires (`tests/test_default_customer.py`)
 - [ ] Icône module conforme charte SOPROMER
-- [ ] Validation : empêcher sélection d'un client archivé
 - [ ] Option booléenne "Forcer ce client" (empêcher override par caissier)
 
 ## Déploiement
