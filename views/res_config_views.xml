@@ -11,7 +11,7 @@
                     <div class="text-muted">
                         Set a default customer for POS orders.
                     </div>
-                    <field name="pos_default_partner_id" class="oe_inline" />
+                    <field name="pos_default_partner_id" class="oe_inline"/>
                 </block>
             </xpath>
         </field>

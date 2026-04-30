@@ -9,7 +9,7 @@
     "support": "ipredictitsolutions@gmail.com",
 
     'category': 'Point of Sale',
-    'version': '18.0.0.1.7',
+    'version': '18.0.0.2.0',
     'depends': ['point_of_sale'],
 
     'data': [

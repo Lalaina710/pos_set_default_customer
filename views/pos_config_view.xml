@@ -7,7 +7,8 @@
             <field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//div[hasclass('o_settings_container')][1]" position="after">
-                    <div class="col-12 col-lg-6 o_setting_box" title="Default Cusotmer in POS Order.">
+                    <div class="col-12 col-lg-6 o_setting_box" title="Default Customer in POS Order."
+                         groups="point_of_sale.group_pos_manager">
                         <div class="o_setting_right_pane">
                             <label for="default_partner_id"/>
                             <div class="text-muted">
