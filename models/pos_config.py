@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class PosConfigInherit(models.Model):
@@ -10,10 +10,21 @@ class PosConfigInherit(models.Model):
         string="Client par défaut",
         domain="[('customer_rank','>',0),('active','=',True),"
                "'|',('company_id','=',False),('company_id','=',company_id)]",
-        groups="point_of_sale.group_pos_manager",
         help="Client automatiquement pré-sélectionné à l'ouverture d'une nouvelle "
              "commande POS. Modification réservée aux managers PdV.",
     )
+
+
+class ResPartnerInherit(models.Model):
+    _inherit = 'res.partner'
+
+    @api.model
+    def _load_pos_data_domain(self, data):
+        domain = super()._load_pos_data_domain(data)
+        config = self.env['pos.config'].browse(data['pos.config']['data'][0]['id'])
+        if config.default_partner_id:
+            return ['|', ('id', '=', config.default_partner_id.id)] + domain
+        return domain
 
 
 class ResConfig(models.TransientModel):
