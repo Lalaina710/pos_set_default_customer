@@ -44,34 +44,39 @@ docker exec odoo-dev /opt/odoo/odoo-bin -c /etc/odoo/odoo.conf \
 | 18.0.0.1.2 | 2026-04-24 | `application: True` → `False` (pas une app) | Claude (opus-4.7) |
 | 18.0.0.1.3 | 2026-04-24 | Ajout `views/res_config_views.xml` manquant dans manifest `data` | Claude (opus-4.7) |
 | 18.0.0.1.4 | 2026-04-24 | Durcissement ACL : domain customer_rank+active+multi-co, groups `group_pos_manager` | Claude (opus-4.7) |
+| 18.0.0.1.7 | 2026-04-30 | Override `res.partner._load_pos_data_domain` pour charger le partner par défaut dans le pool POS frontend (fix auto-set silencieux) | Claude (opus-4.7) |
+| 18.0.0.1.9 | 2026-04-30 | Bloc settings `default_partner_id` masqué entièrement aux non-managers (groups sur outer div) | Claude (opus-4.7) |
+| 18.0.0.2.0 | 2026-04-30 | Patch `PosStore.selectPartner` — bouton client POS bloqué pour caissiers (notification "Changement non autorisé"), managers gardent contrôle total | Claude (opus-4.7) |
 
-## Sécurité
+## Sécurité (v18.0.0.2.0)
 
-Depuis la **v18.0.0.1.4** :
+Architecture multi-niveaux :
 
-- **Domain restrictif** sur `default_partner_id` :
-  - `customer_rank > 0` (exclut fournisseurs purs)
-  - `active = True` (exclut partenaires archivés)
-  - Multi-compagnie compatible (`company_id` = courante ou vide)
-- **Groups ACL** : champ visible/modifiable uniquement par le groupe `point_of_sale.group_pos_manager`
-- Pas de nouveau modèle → pas de `ir.model.access.csv` nécessaire
+- **Backend** :
+  - Domain restrictif sur `default_partner_id` : `customer_rank > 0`, `active = True`, multi-compagnie
+  - Bloc settings entièrement masqué aux non-managers via `groups="point_of_sale.group_pos_manager"` sur outer div
+  - Wrapper `pos_default_partner_id` sur `res.config.settings` réservé managers
+- **POS frontend** :
+  - Patch `PosStore.selectPartner` → bloque ouverture sélecteur client pour caissiers, notification rouge
+  - Auto-set partner_id à création commande via `PosOrder.setup` patch
+  - `res.partner._load_pos_data_domain` étendu pour inclure le partner par défaut dans pool POS
 - Pas de `sudo()` ni bypass ACL
+- Pas de `groups=` sur définition Python `default_partner_id` (sinon POS frontend ne peut pas le lire)
 
-Voir `models/pos_config.py` pour l'implémentation.
+Voir `models/pos_config.py` + `static/src/overrides/store/pos_store.js`.
 
 ## Améliorations prévues (TODO)
 
 - [ ] Traduction française des labels (`pos.config` + `res.config.settings`)
 - [ ] Tests unitaires (`tests/test_default_customer.py`)
 - [ ] Icône module conforme charte SOPROMER
-- [ ] Option booléenne "Forcer ce client" (empêcher override par caissier)
 
 ## Déploiement
 
 | Environnement | Serveur | DB cible | Statut |
 |---------------|---------|----------|--------|
-| TEST | `192.73.0.45` | `SOPROMER-REST220426` | ✅ installé |
-| PROD | `192.73.0.43` | `SOPROMER` | ⏳ en attente validation recette |
+| TEST | `192.73.0.45` | `SOPROMER-REST2904` | ✅ installé v18.0.0.2.0 |
+| PROD | `192.73.0.43` | `SOPROMER` | ✅ installé v18.0.0.2.0 (2026-04-30) |
 
 ## Structure module
 
